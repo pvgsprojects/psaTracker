@@ -1,15 +1,10 @@
-// const locationData = require("./locationData");
-// const getPSA = require("./getPSA");
 const getFieldDCIDs = require("./getFieldDCIDs");
 const locationDataByDCID = require("./locationDataByDCID");
 
-let newGetFieldData = async (unit, DCIDs) => {
+let getFieldData = async (unit, DCIDs, fieldPSAs) => {
   let psas = [];
   for (let DCID of DCIDs) {
     let unitizedDCID = unitizeDCID(unit, DCID);
-    let fieldPSAs = await getFieldDCIDs().then(res => {
-      return res;
-    });
     psas.push(
       fieldPSAs.filter(psa => {
         return psa.location === unitizedDCID;
@@ -19,7 +14,7 @@ let newGetFieldData = async (unit, DCIDs) => {
   return psas;
 };
 
-let newGetLocationData = (unit, DCIDs) => {
+let getLocationData = DCIDs => {
   let locations = [];
   for (let DCID of DCIDs) {
     locations.push(locationDataByDCID.locationDCIDS[DCID]);
@@ -35,7 +30,7 @@ let unitizeDCID = (unit, DCID) => {
   }
 };
 
-let buildCabinet = async (unit, cabinet) => {
+let buildCabinet = async (unit, cabinet, fieldPSAs) => {
   let top = [];
   let bot = [];
   switch (cabinet) {
@@ -53,10 +48,10 @@ let buildCabinet = async (unit, cabinet) => {
       break;
   }
 
-  const fieldDataTop = await newGetFieldData(unit, top);
-  const fieldDataBot = await newGetFieldData(unit, bot);
-  const locationDataTop = newGetLocationData(unit, top);
-  const locationDataBot = newGetLocationData(unit, bot);
+  const fieldDataTop = await getFieldData(unit, top, fieldPSAs);
+  const fieldDataBot = await getFieldData(unit, bot, fieldPSAs);
+  const locationDataTop = getLocationData(top);
+  const locationDataBot = getLocationData(bot);
 
   let builtCabinet = {};
   builtCabinet = { label: cabinet, top: {}, bot: {} };
@@ -80,11 +75,11 @@ let buildCabinet = async (unit, cabinet) => {
   return await builtCabinet;
 };
 
-let buildSystem = async unit => {
+let buildSystem = async (unit, fieldPSAs) => {
   let promises = [
-    buildCabinet(unit, "A"),
-    buildCabinet(unit, "B"),
-    buildCabinet(unit, "C")
+    buildCabinet(unit, "A", fieldPSAs),
+    buildCabinet(unit, "B", fieldPSAs),
+    buildCabinet(unit, "C", fieldPSAs)
   ];
 
   return Promise.all(promises)
@@ -93,7 +88,13 @@ let buildSystem = async unit => {
 };
 
 let buildSite = async () => {
-  let promises = [buildSystem(1), buildSystem(2), buildSystem(3)];
+  const fieldPSAs = await getFieldDCIDs();
+
+  let promises = [
+    buildSystem(1, fieldPSAs),
+    buildSystem(2, fieldPSAs),
+    buildSystem(3, fieldPSAs)
+  ];
 
   return Promise.all(promises)
     .then(site => site)
@@ -104,7 +105,7 @@ module.exports = {
   buildSite,
   buildSystem,
   buildCabinet,
-  newGetLocationData,
-  newGetFieldData,
+  getLocationData,
+  getFieldData,
   unitizeDCID
 };
