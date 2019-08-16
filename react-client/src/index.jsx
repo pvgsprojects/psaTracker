@@ -75,7 +75,6 @@ class App extends React.Component {
   }
 
   render() {
-    console.log("---", "re-render", "---");
     const { viewState } = this.state;
     return (
       <div>
