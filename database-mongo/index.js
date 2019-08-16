@@ -1,8 +1,6 @@
 const mongoose = require("mongoose");
-mongoose.connect("mongodb://localhost/psaDb", {
-  useMongoClient: true
-});
-
+mongoose.connect("mongodb://localhost/psaDb", { useNewUrlParser: true });
+mongoose.set("useFindAndModify", false);
 mongoose.Promise = require("bluebird");
 
 const db = mongoose.connection;
