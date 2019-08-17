@@ -27,7 +27,7 @@ let parsePSADetails = psa => {
       if (psa.fieldData.wecRefurb) {
         parsedPSA.origin = "WEC";
       } else {
-        parsedPSA.origin = "NO!";
+        parsedPSA.origin = psa.fieldData.wpps ? "WPPS" : "OEM";
       }
     } else if (psa.fieldData.breakerRep && !psa.fieldData.wpps) {
       parsedPSA.status = "originalReplacement";
