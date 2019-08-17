@@ -7,11 +7,7 @@ const System = ({ unit, cabinets, onPSAClick, changeViewState }) => {
     <div className="system">
       <div className="center">
         <h2>Unit {unit}</h2>
-        <div className="titles">
-          <span>C01A</span>
-          <span>C01B</span>
-          <span>C01C</span>
-        </div>
+        {/* <div className="titles" /> */}
         <table className="outerTable">
           <tbody>
             <tr>

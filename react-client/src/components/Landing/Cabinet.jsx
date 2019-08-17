@@ -8,6 +8,7 @@ const Cabinet = ({ unit, cabinet, onPSAClick, changeViewState }) => {
   return (
     <div>
       <div className={cabinet.label}>
+        {`C01${cabinet.label}`}
         <table>
           <tbody>
             <CabinetRow

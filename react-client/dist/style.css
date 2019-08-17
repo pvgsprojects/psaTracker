@@ -31,6 +31,7 @@ h2 {
 .PSA {
   width: 75px;
   text-align: center;
+  cursor: pointer;
 }
 
 .titles {
@@ -89,10 +90,12 @@ h3.details {
   background-color: #f1f1f1;
   color: black;
   font-size: 55px;
+  cursor: pointer;
 }
 
 .appButton:hover {
   background-color: #ddd;
+  cursor: pointer;
   color: black;
 }
 
@@ -112,6 +115,15 @@ h3.details {
   text-align: center;
 }
 
+table.outerTable {
+  margin-right: 10px;
+  margin-left: -67px;
+}
+
+table {
+  margin-right: 12px;
+}
+
 table.spares {
   table-layout: fixed;
   width: 700px;
@@ -129,6 +141,7 @@ table.spares th {
 table.spares tr:hover {
   background-color: #ddd;
   color: black;
+  cursor: pointer;
 }
 
 .blank {
