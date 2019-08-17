@@ -7,8 +7,8 @@
   "scripts": {
     "react-dev": "webpack -d --watch",
     "server-dev": "nodemon server/index.js",
-    "build": "webpack --mode production",
-    "seed": "mongoimport --host localhost --port 27017 --db psaDb --collection psas --jsonArray --file /home/patrick/mvp/documentation/sourceData/psa.json"
+    "build": "webpack --mode=production",
+    "seed": "mongoimport --host localhost --port 27017 --db psaDb --collection psas --jsonArray --file ./documentation/sourceData/latestpsa.json"
   },
   "author": "Patrick Gosack",
   "license": "MIT",
