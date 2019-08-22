@@ -1,7 +1,6 @@
-import React from "react";
-import ReactDOM from "react-dom";
+import React, { useState, useEffect } from "react";
+import { render } from "react-dom";
 import { buildSite } from "../../js-client/models/buildSystem";
-import { isLoading, landing } from "./components/states";
 import getSpares from "../../js-client/models/getSpares";
 import getBroken from "../../js-client/models/getBroken";
 import swapPSA from "../../js-client/models/swapPSA";
@@ -12,133 +11,121 @@ import Site from "./components/Landing/Site.jsx";
 import Legend from "./components/Landing/Legend.jsx";
 import PSASwapInitial from "./components/PSADetailPage/PSASwapInitial.jsx";
 import PSASwapConfirm from "./components/PSADetailPage/PSASwapConfirm.jsx";
+import {
+  isLoading,
+  landing,
+} from "./components/states";
 
-class App extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = { viewState: isLoading };
-    this.onPSAClick = this.onPSAClick.bind(this);
-    this.onSparePSAClick = this.onSparePSAClick.bind(this);
-    this.changeViewState = this.changeViewState.bind(this);
-    this.refreshSpares = this.refreshSpares.bind(this);
-    this.handlePSASwap = this.handlePSASwap.bind(this);
-  }
+function App() {
+  const [viewState, changeViewState] = useState({isLoading});
+  const [selectedPSA, onPSAClick] = useState({});
+  const [selectedSparePSA, onSparePSAClick] = useState({});
+  const [spares, addSpares] = useState([]);
+  const [brokenPSAs, addBroken] = useState([]);
+  const [site, addSite] = useState([]);
 
-  //CONTROLLER
-  changeViewState(state) {
-    this.setState({ viewState: state });
-  }
-
-  //MODEL
-  onPSAClick(selectedPSA) {
-    this.setState({ selectedPSA });
-  }
-
-  onSparePSAClick(selectedSparePSA) {
-    this.setState({ selectedSparePSA });
-  }
-
-  async refreshSpares() {
+  useEffect(() => {
+    changeViewState({isLoading});
+    (async () => await refreshEverything())();
+  }, []);
+  
+  const refreshEverything = async () => {
     try {
-      const [spares, brokenPSAs] = await Promise.all([
-        getSpares(),
-        getBroken()
-      ]);
-      this.setState({ spares, brokenPSAs });
-    } catch (e) {
-      // TODO: make error state
-      console.error(e);
-    }
-  }
-
-  async refreshEverything() {
-    try {
-      const [spares, brokenPSAs, site] = await Promise.all([
+      const [newSpares, newBrokenPSAs, newSite] = await Promise.all([
         getSpares(),
         getBroken(),
         buildSite()
       ]);
-      this.setState({ spares, brokenPSAs, site, viewState: landing });
+
+      addSpares(newSpares);
+      addBroken(newBrokenPSAs);
+      addSite(newSite);
+      changeViewState({landing});
     } catch (e) {
       // TODO: make error state
       console.error(e);
     }
-  }
+  };
 
-  async handlePSASwap(PSAsToSwap) {
+  const refreshSpares = async () => {
+    try {
+      const [newSpares, newBrokenPSAs] = await Promise.all([
+        getSpares(),
+        getBroken()
+      ]);
+      addSpares(newSpares);
+      addBroken(newBrokenPSAs);
+    } catch (e) {
+      // TODO: make error state
+      console.error(e);
+    }
+  };
+
+
+  const handlePSASwap = async PSAsToSwap => {
     await swapPSA(PSAsToSwap);
-    this.refreshEverything();
-  }
+    refreshEverything();
+  };
 
-  componentDidMount() {
-    this.setState({ viewState: isLoading }, this.refreshEverything);
-  }
-
-  render() {
-    const { viewState } = this.state;
-    return (
-      <div>
-        {/* PSA DETAIL PAGE */}
-        {viewState.isLoading && <div>Loading...</div>}
-        {/* LANDING PAGE */}
-        {viewState.landing && (
-          <div className="site">
-            <div className="center">
-              <h1>Palo Verde CEDMCS PSA Status</h1>
-              <Site
-                units={this.state.site}
-                changeViewState={this.changeViewState}
-                onPSAClick={this.onPSAClick}
-              />
-              <h3>PSA Security Advisory System</h3>
-              <Legend />
-              <SpareStatus
-                spares={this.state.spares}
-                changeViewState={this.changeViewState}
-              />
-            </div>
-          </div>
-        )}
-        {/* SPARES PAGE */}
-        {viewState.spareView && (
-          <SparePage
-            spares={this.state.spares}
-            broken={this.state.brokenPSAs}
-            changeViewState={this.changeViewState}
-            onPSAClick={this.onPSAClick}
-          />
-        )}
-        {/* DETAILS PAGE */}
-        {viewState.detailView && (
-          <div>
-            <DetailPage
-              spares={this.state.spares}
-              currentPSA={this.state.selectedPSA}
-              refreshSpares={this.refreshSpares}
-              changeViewState={this.changeViewState}
+  return (
+    <div>
+      {/* PSA DETAIL PAGE */}
+      {viewState.isLoading && <div>Loading...</div>}
+      {/* LANDING PAGE */}
+      {viewState.landing && (
+        <div className="site">
+          <div className="center">
+            <h1>Palo Verde CEDMCS PSA Status</h1>
+            <Site
+              units={site}
+              changeViewState={changeViewState}
+              onPSAClick={onPSAClick}
             />
+            <h3>PSA Security Advisory System</h3>
+            <Legend />
+            <SpareStatus spares={spares} changeViewState={changeViewState} />
           </div>
-        )}
-        {/* INITIAL PSA SWAP PAGE  */}
-        {viewState.swapPSAInitialView && (
-          <PSASwapInitial
-            spares={this.state.spares}
-            changeViewState={this.changeViewState}
-            onSparePSAClick={this.onSparePSAClick}
+        </div>
+      )}
+      {/* SPARES PAGE */}
+      {viewState.spareView && (
+        <SparePage
+          spares={spares}
+          broken={brokenPSAs}
+          changeViewState={changeViewState}
+          onPSAClick={onPSAClick}
+        />
+      )}
+      {/* DETAILS PAGE */}
+      {viewState.detailView && (
+        <div>
+          <DetailPage
+            spares={spares}
+            currentPSA={selectedPSA}
+            refreshSpares={refreshSpares}
+            changeViewState={changeViewState}
           />
-        )}
-        {/* PSA SWAP CONFIRMATION PAGE */}
-        {viewState.swapPSAConfirmView && (
-          <PSASwapConfirm
-            selectedPSA={this.state.selectedPSA}
-            selectedSparePSA={this.state.selectedSparePSA}
-            handlePSASwap={this.handlePSASwap}
-            changeViewState={this.changeViewState}
-          />
-        )}
-      </div>
-    );
-  }
+        </div>
+      )}
+      {/* INITIAL PSA SWAP PAGE  */}
+      {viewState.swapPSAInitialView && (
+        <PSASwapInitial
+          spares={spares}
+          changeViewState={changeViewState}
+          onSparePSAClick={onSparePSAClick}
+        />
+      )}
+      {/* PSA SWAP CONFIRMATION PAGE */}
+      {viewState.swapPSAConfirmView && (
+        <PSASwapConfirm
+          selectedPSA={selectedPSA}
+          selectedSparePSA={selectedSparePSA}
+          handlePSASwap={handlePSASwap}
+          changeViewState={changeViewState}
+        />
+      )}
+    </div>
+  );
 }
 
-ReactDOM.render(<App />, document.getElementById("app"));
+render(<App />, document.getElementById("app"));
